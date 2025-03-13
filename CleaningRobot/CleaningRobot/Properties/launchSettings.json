@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CleaningRobot": {
+      "commandName": "Project",
+      "commandLineArgs": "test.json\r\ntest_result.json"
+    }
+  }
+}
