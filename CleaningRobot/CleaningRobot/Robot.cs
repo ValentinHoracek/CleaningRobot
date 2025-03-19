@@ -14,10 +14,10 @@ namespace CleaningRobot
         public string[][]? Map { get; set; }
 
         [JsonPropertyName("visited")]
-        public List<Position> Visited { get; set; } = new();
+        public List<Position> Visited { get; set; } = [];
 
         [JsonPropertyName("cleaned")]
-        public List<Position> Cleaned { get; set; } = new();
+        public List<Position> Cleaned { get; set; } = [];
 
         [JsonPropertyName("final")]
         public Position? FinalPosition { get; set; }
@@ -34,59 +34,91 @@ namespace CleaningRobot
         public int Battery { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
-        private Dictionary<string, int> Instructions = new()
+        private readonly Dictionary<string, int> Instructions = new()
         {
-            ("TR", 1),
-            ("TL", 1),
-            ("A", 2),
-            ("B", 3),
-            ("C", 5),
+            { "TR", 1 },
+            { "TL", 1 },
+            { "A", 2 },
+            { "B", 3 },
+            { "C", 5 },
         };
 
         [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
-        private Position? CurrentPosition { get; set; } = StartPosition;
+        private  Position CurrentPosition { get; set; }
 
-        private string COLUMN = "C";
+        [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+        private const string COLUMN = "C";
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+        private string[][] BackupSequences { get; set; } = new string[5][];
+
+        private int BackupLevel { get; set; } = 0;
+
+        public Robot()
+        {
+            CurrentPosition = StartPosition ?? new Position();
+
+            // Initialize backup sequences
+            BackupSequences[0] = ["TR", "A", "TL"];
+            BackupSequences[1] = ["TR", "A", "TR"];
+            BackupSequences[2] = ["TR", "A", "TR"];
+            BackupSequences[3] = ["TR", "B", "TR", "A"];
+            BackupSequences[4] = ["TL", "TL", "TA"];
+        }
 
         public void Run()
         {
+            if (StartPosition is null || Commands is null || Map is null)
+            {
+                return;
+            }
+
             // Visited start position
             Visited.Add(new Position(StartPosition.X, StartPosition.Y));
 
+
             foreach(string command in Commands)
             {
-                if (Battery - Instructions[command] < 0)
+                ExecuteCommand(command);
+
+                if (BackupLevel == BackupSequences.Length)
                 {
-                    return;
+                    break;
                 }
+            }
+        }
 
-                
-                switch(command)
-                {
-                    case "TR":
-                        CurrentPossition.TurnRight();
-                        break;
-                    case "TL":
-                        CurrentPosition.TurnLeftt();
-                        break;
-                    case "A":
-                        Move(true);
-                        Visited.Add(CurrentPosition.X, CurrentPosition.Y);
-                        break;
-                    case "B":
-                        Move(false);
-                        Visited.Add(CurrentPosition.X, CurrentPosition.Y);
-                        break;
-                    case "C":
-                        Cleaned.Add(new Position(CurrentPosition.X, CurrentPosition.Y));
-                        break;
-
-                }
-
-                
-                Battery -= Instructions[command];
+        private void ExecuteCommand(string command)
+        {
+            if (Battery - Instructions[command] < 0)
+            {
+                return;
             }
 
+            switch (command)
+            {
+                case "TR":
+                    CurrentPosition?.TurnRight();
+                    break;
+                case "TL":
+                    CurrentPosition?.TurnLeftt();
+                    break;
+                case "A":
+                    Move(true);
+                    Visited.Add(new Position(CurrentPosition.X, CurrentPosition.Y));
+                    break;
+                case "B":
+                    Move(false);
+                    Visited.Add(new Position(CurrentPosition.X, CurrentPosition.Y));
+                    break;
+                case "C":
+                    Cleaned.Add(new Position(CurrentPosition.X, CurrentPosition.Y));
+                    break;
+
+            }
+
+
+            Battery -= Instructions[command];
         }
 
         private void Move(bool forward)
@@ -96,16 +128,16 @@ namespace CleaningRobot
 
             switch(CurrentPosition.Facing) 
             {
-                case Orientation.North:
+                case nameof(Orientation.N):
                     xOffset++;
                     break;
-                case Orientation.South:
+                case nameof(Orientation.S):
                     xOffset--;
                     break;
-                case Orientation.East:
+                case nameof(Orientation.E):
                     yOffset++;
                     break;
-                case Orientation.West:
+                case nameof(Orientation.W):
                     yOffset--;
                     break;
                 default:
@@ -127,26 +159,35 @@ namespace CleaningRobot
 
             if (CheckValidPosition(newPosition))
             {
-                CurrentPossition = newPosition;
+                CurrentPosition = newPosition;
             }
             else
             {
                 // backup sequence
+                for (int i = BackupLevel; i < BackupSequences.Length; i++)
+                {
+                    foreach (string command in BackupSequences[i])
+                    {
+                        ExecuteCommand(command);
+                    }
+                }
+
+                BackupLevel++;
             }
         }
 
         private bool CheckValidPosition(Position position)
         {
-            if(position.X >= Map.Length)
+            if(position.X >= Map?.Length)
             {
                 return false;
             }
-            if(position.Y >= Map[0].Length)
+            if(position.Y >= Map?[0].Length)
             { 
                 return false;
             }
 
-            if (Map[position.X][position.Y] is null 
+            if (Map?[position.X][position.Y] is null 
                 || Map[position.X][position.Y].Equals(COLUMN))
             {
                 return false;

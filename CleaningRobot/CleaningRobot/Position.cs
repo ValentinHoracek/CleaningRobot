@@ -38,17 +38,17 @@ namespace CleaningRobot
         {
             switch(Facing)
             {
-                case Orientation.North:
-                    Facing = Orientation.East;
+                case nameof(Orientation.N):
+                    Facing = nameof(Orientation.E);
                     break;
-                case Orientation.South:
-                    Facing = Orientation.West;
+                case nameof(Orientation.S):
+                    Facing = nameof(Orientation.W);
                     break;
-                case Orientation.West:
-                    Facing = Orientation.North;
+                case nameof(Orientation.W):
+                    Facing = nameof(Orientation.N);
                     break;
-                case Orientation.East:
-                    Facing = Orientation.South;
+                case nameof(Orientation.E):
+                    Facing = nameof(Orientation.S);
                     break;
                 default:
                     break;
@@ -59,17 +59,17 @@ namespace CleaningRobot
         {
             switch (Facing)
             {
-                case Orientation.North:
-                    Facing = Orientation.West;
+                case nameof(Orientation.N):
+                    Facing = nameof(Orientation.W);
                     break;
-                case Orientation.South:
-                    Facing = Orientation.East;
+                case nameof(Orientation.S):
+                    Facing = nameof(Orientation.E);
                     break;
-                case Orientation.West:
-                    Facing = Orientation.South;
+                case nameof(Orientation.W):
+                    Facing = nameof(Orientation.S);
                     break;
-                case Orientation.East:
-                    Facing = Orientation.North;
+                case nameof(Orientation.E):
+                    Facing = nameof(Orientation.N);
                     break;
                 default:
                     break;

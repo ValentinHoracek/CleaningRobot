@@ -16,9 +16,10 @@ namespace CleaningRobot
             }
 
             // Cals to execute commands
+            
 
 
-
+            // Add something to output
             robot.Visited.Add(new(0, 0));
             robot.Cleaned.Add(new(0, 1));
             robot.FinalPosition = new(1, 1, "N");
